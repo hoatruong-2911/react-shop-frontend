@@ -1,38 +1,27 @@
-import axios from 'axios';
+// src/services/Admin/categoryService.js
+import api from "../api.ts";
 
-const API_URL = 'http://localhost:8080/api';
+// KHÔNG dùng /admin prefix, để BE chặn bằng @PreAuthorize
+export const getAllCategories = () =>
+  api.get("/categories", { params: { _t: Date.now() } });
 
-// Lấy tất cả danh mục
-const getAllCategories = () => {
-    return axios.get(`${API_URL}/categories`);
-};
+export const getCategoryById = (id) =>
+  api.get(`/categories/${id}`);
 
-// Lấy chi tiết một danh mục theo ID
-const getCategoryById = (id) => {
-    return axios.get(`${API_URL}/categories/${id}`);
-};
+export const createCategory = (payload) =>
+  api.post("/categories", payload);          // ADMIN
 
-// Tạo mới một danh mục
-const createCategory = (category) => {
-    return axios.post(`${API_URL}/categories`, category);
-};
+export const updateCategory = (id, payload) =>
+  api.put(`/categories/${id}`, payload);     // ADMIN
 
-// Cập nhật một danh mục
-const updateCategory = (id, category) => {
-    return axios.put(`${API_URL}/categories/${id}`, category);
-};
-
-// Xóa một danh mục
-const deleteCategory = (id) => {
-    return axios.delete(`${API_URL}/categories/${id}`);
-};
+export const deleteCategory = (id) =>
+  api.delete(`/categories/${id}`);           // ADMIN
 
 const CategoryService = {
-    getAllCategories,
-    getCategoryById,
-    createCategory,
-    updateCategory,
-    deleteCategory
+  getAllCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory,
 };
-
 export default CategoryService;

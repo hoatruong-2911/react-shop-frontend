@@ -1,60 +1,34 @@
-import axios from 'axios';
+// dùng đúng /products, KHÔNG có /admin
+import api from "../api.ts";
 
-const API_URL = 'http://localhost:8080/api';
-
-// === HÀM MỚI ĐỂ UPLOAD FILE ===
-const uploadFile = (file) => {
-    const formData = new FormData();
-    formData.append("file", file); // "file" phải khớp với @RequestParam("file") ở backend
-
-    return axios.post(`${API_URL}/files/upload`, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
+export const uploadFile = async (file) => {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await api.post("/files/upload", form);
+  // BE trả về CHUỖI url -> trả thẳng
+  return typeof res.data === "string" ? res.data : (res.data?.url || "");
 };
 
-// --- Product CRUD Functions ---
-const getAllProducts = () => {
-    // Thêm một tham số ngẫu nhiên (dựa vào thời gian) để tránh bị cache
-    return axios.get(`${API_URL}/products`, { params: { _t: new Date().getTime() } });
-};
+export const getAllProducts = () =>
+  api.get("/products", { params: { _t: Date.now() } });
 
-const getProductById = (id) => {
-    return axios.get(`${API_URL}/products/${id}`);
-};
+export const getProductById = (id) =>
+  api.get(`/products/${id}`);
 
-const createProduct = (product) => {
-    return axios.post(`${API_URL}/products`, product);
-};
+export const createProduct = (product) =>
+  api.post("/products", product);        // BE chặn quyền ADMIN
 
-const updateProduct = (id, product) => {
-    
-    return axios.put(`${API_URL}/products/${id}`, product);
-};
+export const updateProduct = (id, product) =>
+  api.put(`/products/${id}`, product);   // BE chặn quyền ADMIN
 
-const deleteProduct = (id) => {
-    return axios.delete(`${API_URL}/products/${id}`);
-};
+export const deleteProduct = (id) =>
+  api.delete(`/products/${id}`);         // BE chặn quyền ADMIN
 
-// --- Product Search Functions ---
-const searchProductsByName = (keyword) => {
-    return axios.get(`${API_URL}/products/search`, { params: { keyword } });
+export default {
+  uploadFile,
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
 };
-
-const searchProductsByPriceRange = (min, max) => {
-    return axios.get(`${API_URL}/products/search/price`, { params: { min, max } });
-};
-
-const ProductService = {
-    getAllProducts,
-    getProductById,
-    createProduct,
-    updateProduct,
-    deleteProduct,
-    searchProductsByName,
-    searchProductsByPriceRange,
-    uploadFile
-};
-
-export default ProductService;

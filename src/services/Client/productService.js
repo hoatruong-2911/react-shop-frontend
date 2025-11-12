@@ -1,29 +1,15 @@
-import axios from "axios";
+import api from "../api.ts";
 
-const API_URL = "http://localhost:8080/api";
+export const getAllProducts = () =>
+  api.get("/products", { params: { _t: Date.now() } });
 
-// --- Product Read-Only Functions ---
-const getAllProducts = () => {
-  // Giữ lại cache-busting param của bạn
-  return axios.get(`${API_URL}/products`, {
-    params: { _t: new Date().getTime() },
-  });
-};
+export const getProductById = (id) => api.get(`/products/${id}`);
 
-const getProductById = (id) => {
-  return axios.get(`${API_URL}/products/${id}`);
-};
+export const searchProductsByName = (keyword) =>
+  api.get("/products/search", { params: { keyword } });
 
-// --- Product Search Functions ---
-const searchProductsByName = (keyword) => {
-  return axios.get(`${API_URL}/products/search`, { params: { keyword } });
-};
-
-const searchProductsByPriceRange = (min, max) => {
-  return axios.get(`${API_URL}/products/search/price`, {
-    params: { min, max },
-  });
-};
+export const searchProductsByPriceRange = (min, max) =>
+  api.get("/products/search/price", { params: { min, max } });
 
 const ClientProductService = {
   getAllProducts,
@@ -31,5 +17,4 @@ const ClientProductService = {
   searchProductsByName,
   searchProductsByPriceRange,
 };
-
 export default ClientProductService;

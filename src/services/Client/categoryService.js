@@ -1,23 +1,9 @@
-import axios from "axios";
+import api from "../api.ts";
 
-const API_URL = "http://localhost:8080/api";
+export const getAllCategories = () =>
+  api.get("/categories", { params: { _t: Date.now() } });
 
-// Lấy tất cả danh mục
-const getAllCategories = () => {
-  // Thêm tham số cache-busting giống file product
-  return axios.get(`${API_URL}/categories`, {
-    params: { _t: new Date().getTime() },
-  });
-};
+export const getCategoryById = (id) => api.get(`/categories/${id}`);
 
-// Lấy chi tiết một danh mục theo ID
-const getCategoryById = (id) => {
-  return axios.get(`${API_URL}/categories/${id}`);
-};
-
-const ClientCategoryService = {
-  getAllCategories,
-  getCategoryById,
-};
-
+const ClientCategoryService = { getAllCategories, getCategoryById };
 export default ClientCategoryService;

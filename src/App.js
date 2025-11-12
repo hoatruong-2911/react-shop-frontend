@@ -1,75 +1,146 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-import { CartProvider } from './contexts/CartContext'; // <-- 1. IMPORT CART PROVIDER
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import "./App.css";
+import { CartProvider } from "./contexts/CartContext";
 
-// 1. IMPORT CÁC LAYOUT
-import AdminLayout from './layouts/Admin/AdminLayout';
-import ClientLayout from './layouts/Client/ClientLayout';
+// Layouts
+import AdminLayout from "./layouts/Admin/AdminLayout";
+import ClientLayout from "./layouts/Client/ClientLayout";
 
-// 2. IMPORT CÁC TRANG CỦA ADMIN
-import { default as AdminProductListPage } from './pages/Admin/products/ProductListPage'; 
-import AddProductPage from './pages/Admin/products/AddProductPage';
-import EditProductPage from './pages/Admin/products/EditProductPage';
-import CategoryListPage from './pages/Admin/categorys/CategoryListPage';
-import AddCategoryPage from './pages/Admin/categorys/AddCategoryPage';
-import EditCategoryPage from './pages/Admin/categorys/EditCategoryPage';
+// Admin pages
+import { default as AdminProductListPage } from "./pages/Admin/products/ProductListPage";
+import AddProductPage from "./pages/Admin/products/AddProductPage";
+import EditProductPage from "./pages/Admin/products/EditProductPage";
+import CategoryListPage from "./pages/Admin/categorys/CategoryListPage";
+import AddCategoryPage from "./pages/Admin/categorys/AddCategoryPage";
+import EditCategoryPage from "./pages/Admin/categorys/EditCategoryPage";
 
-// 3. IMPORT CÁC TRANG CLIENT
-import HomePage from './pages/Client/HomePage';
-import ProductListPage from './pages/Client/ProductListPage';
-import ProductDetailPage from './pages/Client/ProductDetailPage';
-import CartPage from './pages/Client/CartPage'; // <-- 4. IMPORT FILE THẬT
+// Client pages
+import HomePage from "./pages/Client/HomePage";
+import ProductListPage from "./pages/Client/ProductListPage";
+import ProductDetailPage from "./pages/Client/ProductDetailPage";
+import CartPage from "./pages/Client/CartPage";
+import ProfilePage from "./pages/Client/ProfilePage";
+// Auth
+import LoginPage from "./pages/Auth/LoginPage";
+import authService from "./services/authService";
+import RegisterPage from "./pages/Auth/RegisterPage";
+// Toast
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-// 4. IMPORT TOASTIFY
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+/* =========================
+   GUARDS
+   ========================= */
 
-// 5. CÁC COMPONENT GIỮ CHỖ (PLACEHOLDER)
-// const CartPage = () => <div>Đây là Trang Giỏ Hàng</div>; // <-- 5. XÓA FILE GIỮ CHỖ
-const DashboardPage = () => <div>Đây là Dashboard Admin</div>;
-const UserPage = () => <div>Đây là Quản lý Người dùng</div>;
+/** Khi đã đăng nhập thì chặn vào /login; tự điều hướng theo role */
+/** Khi đã đăng nhập thì chặn vào /login; tự điều hướng theo role */
+function RedirectIfAuthed() {
+  const [state, setState] = useState({ loading: true, role: null });
+  const location = useLocation();
+
+  useEffect(() => {
+    let mounted = true;
+
+    // ✅ Nếu client đã biết là CHƯA đăng nhập => cho vào /login ngay, KHÔNG gọi /auth/me
+    const raw = localStorage.getItem("auth_user");
+    if (!raw) {
+      mounted && setState({ loading: false, role: null });
+      return () => { mounted = false; };
+    }
+
+    // Nếu có auth_user thì xác nhận lại với server
+    authService
+      .me()
+      .then((u) => mounted && setState({ loading: false, role: (u?.role || "").toUpperCase() }))
+      .catch(() => mounted && setState({ loading: false, role: null }));
+
+    return () => { mounted = false; };
+  }, []);
+
+  if (state.loading) return null; // hoặc spinner
+
+  if (state.role === "ADMIN" || state.role === "STAFF") {
+    return <Navigate to="/admin" replace state={{ from: location }} />;
+  }
+  if (state.role === "USER") {
+    return <Navigate to="/" replace state={{ from: location }} />;
+  }
+  return <Outlet />;
+}
 
 
+/** Yêu cầu đăng nhập + đúng role (ví dụ ADMIN/STAFF) */
+function RequireRole({ allow = [] }) {
+  const [state, setState] = useState({ loading: true, ok: false });
+  const location = useLocation();
+
+  useEffect(() => {
+    let mounted = true;
+    authService
+      .me()
+      .then((u) => {
+        const role = (u?.role || "").toUpperCase();
+        const ok = allow.length === 0 || allow.includes(role);
+        mounted && setState({ loading: false, ok });
+      })
+      .catch(() => mounted && setState({ loading: false, ok: false }));
+    return () => (mounted = false);
+  }, [allow]);
+
+  if (state.loading) return null; // hoặc spinner
+
+  return state.ok ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/login" replace state={{ from: location }} />
+  );
+}
+
+/* =========================
+   APP
+   ========================= */
 function App() {
-  return (
-    // 2. BỌC CARTPROVIDER RA NGOÀI CÙNG
-    <CartProvider>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        theme="light"
-      />
+  return (
+    <CartProvider>
+      <ToastContainer position="top-right" autoClose={3000} theme="light" />
 
-      <Routes>
-        
-        <Route path="/" element={<ClientLayout />}>
-          <Route index element={<HomePage />} /> 
-          <Route path="products" element={<ProductListPage />} />
-          <Route path="product/:id" element={<ProductDetailPage />} /> 
-          {/* 6. ROUTE GIỎ HÀNG BÂY GIỜ DÙNG COMPONENT THẬT */}
-          <Route path="cart" element={<CartPage />} />
-        </Route>
+      <Routes>
+        {/* ======= Auth ======= */}
+        <Route element={<RedirectIfAuthed />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
 
+        {/* ======= Client area (public) ======= */}
+        <Route path="/" element={<ClientLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="products" element={<ProductListPage />} />
+          <Route path="product/:id" element={<ProductDetailPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="/user/profile" element={<ProfilePage />} />
+        </Route>
 
-        {/* === CÁC ROUTE CỦA ADMIN === */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate replace to="dashboard" />} /> 
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="products" element={<AdminProductListPage />} /> 
-          <Route path="add-product" element={<AddProductPage />} />
-          <Route path="edit-product/:id" element={<EditProductPage />} />
-          <Route path="categories" element={<CategoryListPage />} />
-          <Route path="add-category" element={<AddCategoryPage />} />
-          <Route path="edit-category/:id" element={<EditCategoryPage />} />
-          <Route path="users" element={<UserPage />} />
-        </Route>
+        {/* ======= Admin area (ADMIN & STAFF) ======= */}
+        <Route element={<RequireRole allow={["ADMIN", "STAFF"]} />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate replace to="dashboard" />} />
+            <Route path="dashboard" element={<div>Đây là Dashboard Admin</div>} />
+            <Route path="products" element={<AdminProductListPage />} />
+            <Route path="add-product" element={<AddProductPage />} />
+            <Route path="edit-product/:id" element={<EditProductPage />} />
+            <Route path="categories" element={<CategoryListPage />} />
+            <Route path="add-category" element={<AddCategoryPage />} />
+            <Route path="edit-category/:id" element={<EditCategoryPage />} />
+            <Route path="users" element={<div>Đây là Quản lý Người dùng</div>} />
+          </Route>
+        </Route>
 
-        <Route path="*" element={<div>404 - Không tìm thấy trang</div>} />
-
-      </Routes>
-    </CartProvider>
-  );
+        {/* 404 */}
+        <Route path="*" element={<div>404 - Không tìm thấy trang</div>} />
+      </Routes>
+    </CartProvider>
+  );
 }
 
 export default App;
