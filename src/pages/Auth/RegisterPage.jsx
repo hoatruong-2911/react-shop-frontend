@@ -25,14 +25,17 @@ export default function RegisterPage() {
     setForm((s) => ({ ...s, [name]: type === "checkbox" ? checked : value }));
   };
 
+  // FE chỉ kiểm tra những thứ backend không làm:
+  // - nhập đầy đủ
+  // - xác nhận mật khẩu
+  // - tick đồng ý
   const validate = () => {
     if (!form.name.trim()) return "Vui lòng nhập họ tên.";
     if (!form.email.trim()) return "Vui lòng nhập email.";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Email không hợp lệ.";
     if (!form.phone.trim()) return "Vui lòng nhập số điện thoại.";
     if (!form.address.trim()) return "Vui lòng nhập địa chỉ.";
     if (!form.password) return "Vui lòng nhập mật khẩu.";
-    if (form.password.length < 6) return "Mật khẩu tối thiểu 6 ký tự.";
+    if (!form.confirm) return "Vui lòng nhập mật khẩu xác nhận.";
     if (form.password !== form.confirm) return "Mật khẩu xác nhận không khớp.";
     if (!form.agree) return "Bạn cần đồng ý với chính sách trước khi tiếp tục.";
     return "";
@@ -58,17 +61,15 @@ export default function RegisterPage() {
         password: form.password,
       });
 
-      // đăng ký xong chuyển sang đăng nhập
       nav("/login", { replace: true });
     } catch (ex) {
-    const data = ex?.response?.data;
-    const msg =
+      const data = ex?.response?.data;
+      const msg =
         data?.error ||
         data?.message ||
         "Đăng ký thất bại. Vui lòng thử lại.";
-    setErr(msg);
-    }
-     finally {
+      setErr(msg);
+    } finally {
       setLoading(false);
     }
   };

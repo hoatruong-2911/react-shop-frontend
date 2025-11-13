@@ -24,24 +24,36 @@ export default function LoginPage() {
   try {
     setLoading(true);
 
-    // 1) Login -> backend set cookie HttpOnly và trả { token, next }
-    const res = await authService.login(email, password); // { token, next }
+    // 1) Login -> backend set cookie HttpOnly và trả { token, next, role }
+    const res = await authService.login(email, password); // { token, next, role }
     const next = (res && res.next) || "/";
+
+    // ⭐ Lưu token & role để interceptor + giao diện dùng
+    if (res?.token) {
+      localStorage.setItem("token", res.token);
+    }
+    if (res?.role) {
+      localStorage.setItem("role", res.role);
+    }
 
     // 2) Điều hướng NGAY, không chờ /auth/me
     window.dispatchEvent(new Event("auth-changed"));
     nav(next, { replace: true });
 
-    // 3) Gọi /auth/me ở nền để lưu thông tin user (không ảnh hưởng điều hướng)
-    authService.me()
-      .then(me => {
+    // 3) Gọi /auth/me ở nền để lưu thông tin user
+    authService
+      .me()
+      .then((me) => {
         localStorage.setItem("auth_user", JSON.stringify(me));
         window.dispatchEvent(new Event("auth-changed"));
       })
-      .catch(() => { /* bỏ qua lần đầu nếu cookie tới muộn */ });
-
+      .catch(() => {
+        // bỏ qua lỗi lần đầu
+      });
   } catch (ex) {
-    setErr(ex?.response?.data?.error || "Đăng nhập thất bại. Vui lòng thử lại.");
+    setErr(
+      ex?.response?.data?.error || "Đăng nhập thất bại. Vui lòng thử lại."
+    );
   } finally {
     setLoading(false);
   }
@@ -56,7 +68,10 @@ export default function LoginPage() {
         <p className="hero-txt2">Đăng nhập để bắt đầu!</p>
         <p className="hero-txt3">
           Nếu bạn chưa có tài khoản, hãy{" "}
-          <Link to="/register" className="link-green">tạo ngay</Link>{" "}hôm nay để không bỏ lỡ các ưu đãi hấp dẫn.
+          <Link to="/register" className="link-green">
+            tạo ngay
+          </Link>{" "}
+          hôm nay để không bỏ lỡ các ưu đãi hấp dẫn.
         </p>
       </div>
 
@@ -91,7 +106,9 @@ export default function LoginPage() {
             <span>Tôi đồng ý với chính sách của bạn</span>
           </label>
 
-          <Link to="/forgot" className="forgot">Tôi không nhớ mật khẩu</Link>
+          <Link to="/forgot" className="forgot">
+            Tôi không nhớ mật khẩu
+          </Link>
 
           {err && <div className="err">{err}</div>}
 

@@ -14,7 +14,9 @@ import EditProductPage from "./pages/Admin/products/EditProductPage";
 import CategoryListPage from "./pages/Admin/categorys/CategoryListPage";
 import AddCategoryPage from "./pages/Admin/categorys/AddCategoryPage";
 import EditCategoryPage from "./pages/Admin/categorys/EditCategoryPage";
-
+import MemberListPage from "./pages/Admin/users/MemberListPage";
+import AddMemberPage from "./pages/Admin/users/AddMemberPage";
+import EditMemberPage from "./pages/Admin/users/EditMemberPage";
 // Client pages
 import HomePage from "./pages/Client/HomePage";
 import ProductListPage from "./pages/Client/ProductListPage";
@@ -25,6 +27,7 @@ import ProfilePage from "./pages/Client/ProfilePage";
 import LoginPage from "./pages/Auth/LoginPage";
 import authService from "./services/authService";
 import RegisterPage from "./pages/Auth/RegisterPage";
+import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage";
 // Toast
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -110,6 +113,7 @@ function App() {
         <Route element={<RedirectIfAuthed />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot" element={<ForgotPasswordPage />} />
         </Route>
 
         {/* ======= Client area (public) ======= */}
@@ -132,7 +136,9 @@ function App() {
             <Route path="categories" element={<CategoryListPage />} />
             <Route path="add-category" element={<AddCategoryPage />} />
             <Route path="edit-category/:id" element={<EditCategoryPage />} />
-            <Route path="users" element={<div>Đây là Quản lý Người dùng</div>} />
+            <Route path="members" element={<MemberListPage />} />
+            <Route path="members/add" element={<AddMemberPage />} />
+            <Route path="members/edit/:id" element={<EditMemberPage />} />
           </Route>
         </Route>
 
