@@ -81,6 +81,9 @@ function AdminLayout() {
               <Link to="/admin/categories">Danh mục</Link>
             </li>
             <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/brands">Thương hiệu</Link>
+            </li>
+            <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/members">Người dùng</Link>
             </li>
           </ul>
