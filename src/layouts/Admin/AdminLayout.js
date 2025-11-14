@@ -1,20 +1,21 @@
+// src/layouts/Admin/AdminLayout.jsx
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import "../../App.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+// ❌ BỎ 2 dòng này khỏi AdminLayout
+// import { ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
 import authService from "../../services/authService";
 
 function AdminLayout() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
 
-  // Xác thực & ép quyền ADMIN/STAFF
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const me = await authService.me(); // dùng cookie jwt
+        const me = await authService.me();
         const role = (me?.role || "").toUpperCase();
         if (!["ADMIN", "STAFF"].includes(role)) {
           navigate("/login", { replace: true });
@@ -27,29 +28,24 @@ function AdminLayout() {
         if (alive) setChecking(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [navigate]);
 
   const handleLogout = async () => {
     try {
-      // 1) Xoá cookie JWT trên server
       await authService.logout();
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
+
     try {
-      // 2) Dọn client state
       localStorage.removeItem("auth_token");
       localStorage.removeItem("auth_user");
       sessionStorage.clear();
-      // 3) Báo cho header client cập nhật tên/nút
       window.dispatchEvent(new Event("auth-changed"));
     } catch (_) {}
 
-    // 4) Điều hướng về trang login (hoặc "/")
     navigate("/login", { replace: true });
-    // 5) Nếu muốn chắc chắn đồng bộ cookie → reload
-    // window.location.reload();
   };
 
   if (checking) {
@@ -62,7 +58,7 @@ function AdminLayout() {
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans w-full mx-0">
-      <ToastContainer position="top-right" autoClose={3000} theme="light" />
+      {/* ❌ KHÔNG đặt ToastContainer ở đây nữa */}
 
       {/* Sidebar */}
       <div className="w-64 bg-gray-800 text-white flex-shrink-0">
@@ -79,6 +75,9 @@ function AdminLayout() {
             </li>
             <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/categories">Danh mục</Link>
+            </li>
+            <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/orders">Đơn hàng</Link>
             </li>
             <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/members">Người dùng</Link>

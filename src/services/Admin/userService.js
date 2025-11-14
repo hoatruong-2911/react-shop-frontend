@@ -16,7 +16,11 @@ export const createUser = (user) => api.post(PREFIX, user);
 export const updateUser = (id, user) => api.put(`${PREFIX}/${id}`, user);
 
 // Xóa user
-export const deleteUser = (id) => api.delete(`${PREFIX}/${id}`);
+export const deleteUser = (id, force = false) => {
+  return api.delete(`/admin/users/${id}`, {
+    params: { force }       // => /admin/users/6?force=true
+  });
+};
 
 // (Optional) Search theo tên/email nếu sau này backend có
 export const searchUsers = (keyword) =>

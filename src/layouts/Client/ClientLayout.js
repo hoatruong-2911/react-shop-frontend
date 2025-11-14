@@ -127,6 +127,13 @@ const ClientHeader = () => {
                     >
                       Tài khoản của tôi
                     </Link>
+                    <Link
+                      to="/my-orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Đơn hàng của tôi
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -135,6 +142,7 @@ const ClientHeader = () => {
                     </button>
                   </div>
                 )}
+
               </div>
             )}
           </div>

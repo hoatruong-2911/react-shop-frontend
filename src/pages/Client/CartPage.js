@@ -1,7 +1,7 @@
 // src/pages/Client/CartPage.jsx
 import React from "react";
 import { useCart } from "../../contexts/CartContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // 👈 THÊM useNavigate
 import { Minus, Plus, Trash2, ChevronRight, ShoppingCart } from "lucide-react";
 
 /* ===== Chuẩn hoá URL ảnh (dùng chung) ===== */
@@ -13,42 +13,31 @@ function normFileUrl(val) {
   if (!val) return "";
   let v = String(val).trim().replace(/\\/g, "/");
 
-  // 1) ĐÃ là full URL
   if (/^https?:\/\//i.test(v)) {
     try {
       const u = new URL(v);
-      // Nếu là http://host:port/files/... (THIẾU /api) -> thêm /api
       if (u.origin === ORIGIN && u.pathname.startsWith("/files/")) {
         return `${ORIGIN}/api${u.pathname}`;
       }
-      return v; // còn lại giữ nguyên
+      return v;
     } catch {
-      // nếu parse URL lỗi, fallback xử lý như đường dẫn tương đối bên dưới
+      // ignore
     }
   }
 
-  // 2) Dạng đã đúng prefix /api/files/ -> ghép ORIGIN
   if (v.startsWith("/api/files/")) return `${ORIGIN}${v}`;
-
-  // 3) Dạng /files/... hoặc files/... -> ghép API_BASE (có /api sẵn)
   if (v.startsWith("/files/")) return `${API_BASE}${v}`;
   if (v.startsWith("files/")) return `${API_BASE}/${v}`;
-
-  // 4) Chỉ là tên file -> ghép /api/files/<name>
   if (!v.includes("/")) return `${API_BASE}/files/${v}`;
-
-  // 5) Fallback: đường dẫn tương đối khác -> gắn vào API_BASE
   return `${API_BASE}/${v.replace(/^\/+/, "")}`;
 }
 
-// Lấy đúng trường ảnh và chuẩn hoá URL (kèm fallback)
 function getItemImage(item) {
   const v = item?.imageUrl || item?.image || item?.thumbnail || item?.avatarUrl || "";
   const u = normFileUrl(v);
   return u || PLACEHOLDER;
 }
 
-// Hàm định dạng tiền tệ
 const formatPrice = (price) => {
   if (typeof price !== "number" || isNaN(price)) {
     return "N/A";
@@ -122,7 +111,12 @@ const CartItemRow = ({ item, updateQuantity, removeFromCart, isSelected, toggleS
           >
             <Minus size={16} />
           </button>
-          <input type="text" value={item.quantity} readOnly className="w-12 text-center border-l border-r py-2" />
+          <input
+            type="text"
+            value={item.quantity}
+            readOnly
+            className="w-12 text-center border-l border-r py-2"
+          />
           <button
             onClick={() => handleQuantityChange(1)}
             className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-r-md"
@@ -144,16 +138,18 @@ const CartItemRow = ({ item, updateQuantity, removeFromCart, isSelected, toggleS
 const CartPage = () => {
   const {
     cartItems,
-    selectedItems, // danh sách ID đang chọn
+    selectedItems,
     updateQuantity,
     removeFromCart,
-    selectedCartTotal, // tổng tiền đã chọn
+    selectedCartTotal,
     toggleSelectItem,
     toggleSelectAll,
     isAllSelected,
   } = useCart();
 
-  const shippingFee = selectedItems.length > 0 ? 30000 : 0; // chỉ tính phí ship nếu có hàng được chọn
+  const navigate = useNavigate(); // 👈 THÊM DÒNG NÀY
+
+  const shippingFee = selectedItems.length > 0 ? 30000 : 0;
   const finalTotal = selectedCartTotal + shippingFee;
 
   return (
@@ -171,7 +167,6 @@ const CartPage = () => {
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Giỏ hàng của bạn</h1>
 
         {cartItems.length === 0 ? (
-          // Giỏ hàng trống
           <div className="text-center bg-white p-12 rounded-lg shadow-md border">
             <ShoppingCart size={60} className="mx-auto text-gray-400 mb-6" />
             <h2 className="text-2xl font-semibold mb-4">Giỏ hàng của bạn đang trống</h2>
@@ -184,11 +179,9 @@ const CartPage = () => {
             </Link>
           </div>
         ) : (
-          // Giỏ hàng có sản phẩm
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Cột 1: Danh sách sản phẩm */}
+            {/* Cột 1 */}
             <div className="lg:col-span-2 bg-white p-8 rounded-lg shadow-md border">
-              {/* Header bảng */}
               <div className="flex items-center pb-4 border-b text-left text-sm font-semibold text-gray-500 uppercase">
                 <div className="w-1/12 flex justify-center px-2">
                   <input
@@ -204,7 +197,6 @@ const CartPage = () => {
                 <div className="w-2/12 text-center">Tổng cộng</div>
               </div>
 
-              {/* Các hàng sản phẩm */}
               <div>
                 {cartItems.map((item) => (
                   <CartItemRow
@@ -222,7 +214,6 @@ const CartPage = () => {
                 <Link to="/products" className="text-blue-600 font-semibold hover:underline">
                   ← Tiếp tục mua sắm
                 </Link>
-                {/* Có thể thêm nút "Xóa các mục đã chọn" tại đây */}
               </div>
             </div>
 
@@ -231,8 +222,12 @@ const CartPage = () => {
               <h2 className="text-2xl font-semibold mb-6 border-b pb-4">Tóm tắt đơn hàng</h2>
               <div className="space-y-4 text-lg">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tạm tính ({selectedItems.length} sản phẩm):</span>
-                  <span className="font-medium text-gray-800">{formatPrice(selectedCartTotal)}</span>
+                  <span className="text-gray-600">
+                    Tạm tính ({selectedItems.length} sản phẩm):
+                  </span>
+                  <span className="font-medium text-gray-800">
+                    {formatPrice(selectedCartTotal)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Vận chuyển:</span>
@@ -240,13 +235,16 @@ const CartPage = () => {
                 </div>
                 <div className="border-t pt-4 mt-4 flex justify-between">
                   <span className="font-bold text-xl">Thành tiền:</span>
-                  <span className="font-bold text-xl text-red-600">{formatPrice(finalTotal)}</span>
+                  <span className="font-bold text-xl text-red-600">
+                    {formatPrice(finalTotal)}
+                  </span>
                 </div>
               </div>
 
               <button
                 className="mt-8 w-full bg-green-600 text-white font-bold py-4 px-6 rounded-lg text-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={selectedItems.length === 0}
+                onClick={() => navigate("/checkout")}
               >
                 Tiến hành thanh toán ({selectedItems.length})
               </button>

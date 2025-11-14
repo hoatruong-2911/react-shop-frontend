@@ -73,21 +73,63 @@ const MemberListPage = () => {
     setCurrentPage(1);
   }, [searchTerm, roleFilter, allUsers]);
 
-  const handleDelete = (id) => {
-    if (!isAdmin) return; // an toàn
-    if (window.confirm(`Bạn có chắc chắn muốn xóa thành viên ID ${id}?`)) {
-      userService
-        .deleteUser(id)
-        .then(() => {
-          toast.success("Xóa thành viên thành công!");
-          loadData();
-        })
-        .catch((err) => {
-          console.error("Lỗi xóa thành viên", err);
-          toast.error("Xóa thành viên thất bại!");
-        });
+  // 🔥 Xoá user với 2 lựa chọn (giữ đơn / xoá cả đơn)
+  const handleDelete = async (id) => {
+  if (!isAdmin) return;
+
+  const ok = window.confirm(
+    `Bạn có chắc chắn muốn xóa thành viên ID ${id}?\n\n` +
+      "Lưu ý: Nếu thành viên này đã từng đặt đơn hàng, hệ thống sẽ hỏi bạn thêm 1 bước nữa."
+  );
+  if (!ok) return;
+
+  try {
+    await userService.deleteUser(id, false); // force=false
+    toast.success("Xóa thành viên thành công!");
+    loadData();
+  } catch (err) {
+    console.error("Lỗi xóa thành viên", err);
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    // 👇 BẮT ĐÚNG TRƯỜNG HỢP USER CÓ ĐƠN HÀNG
+    if (
+      status === 409 &&
+      (data?.hasOrders || data?.error === "USER_HAS_ORDERS")
+    ) {
+      const confirmForce = window.confirm(
+        "Thành viên này đã từng đặt ĐƠN HÀNG.\n\n" +
+          `Số đơn hàng: ${data?.orderCount ?? "?"}\n\n` +
+          "Bạn muốn làm gì?\n\n" +
+          "OK     : XÓA USER và TẤT CẢ ĐƠN HÀNG của user này.\n" +
+          "Cancel : GIỮ LẠI, không xóa gì cả."
+      );
+
+      if (!confirmForce) {
+        toast.info("Đã giữ lại tài khoản, không xoá dữ liệu nào.");
+        return;
+      }
+
+      try {
+        await userService.deleteUser(id, true); // 👈 force = true
+        toast.success("Đã xóa user và toàn bộ đơn hàng liên quan!");
+        loadData();
+      } catch (err2) {
+        console.error("Lỗi xóa user + đơn hàng", err2);
+        const msg2 =
+          err2?.response?.data?.error ||
+          err2?.response?.data?.message ||
+          "Xóa user và đơn hàng thất bại!";
+        toast.error(msg2);
+      }
+    } else {
+      const msg =
+        data?.message || data?.error || "Xóa thành viên thất bại!";
+      toast.error(msg);
     }
-  };
+  }
+};
+
 
   const resetFilter = () => {
     setSearchTerm("");

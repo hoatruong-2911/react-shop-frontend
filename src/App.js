@@ -17,12 +17,17 @@ import EditCategoryPage from "./pages/Admin/categorys/EditCategoryPage";
 import MemberListPage from "./pages/Admin/users/MemberListPage";
 import AddMemberPage from "./pages/Admin/users/AddMemberPage";
 import EditMemberPage from "./pages/Admin/users/EditMemberPage";
+import OrderListPage from "./pages/Admin/orders/OrderListPage";
+import OrderDetailPage from "./pages/Admin/orders/OrderDetailPage";
+import DashboardPage from "./pages/Admin/dashboard/DashboardPage";
 // Client pages
 import HomePage from "./pages/Client/HomePage";
 import ProductListPage from "./pages/Client/ProductListPage";
 import ProductDetailPage from "./pages/Client/ProductDetailPage";
 import CartPage from "./pages/Client/CartPage";
 import ProfilePage from "./pages/Client/ProfilePage";
+import CheckoutPage from "./pages/Client/CheckoutPage";
+import MyOrdersPage from "./pages/Client/MyOrdersPage";
 // Auth
 import LoginPage from "./pages/Auth/LoginPage";
 import authService from "./services/authService";
@@ -123,13 +128,15 @@ function App() {
           <Route path="product/:id" element={<ProductDetailPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="/user/profile" element={<ProfilePage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="my-orders" element={<MyOrdersPage />} />
         </Route>
 
         {/* ======= Admin area (ADMIN & STAFF) ======= */}
         <Route element={<RequireRole allow={["ADMIN", "STAFF"]} />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate replace to="dashboard" />} />
-            <Route path="dashboard" element={<div>Đây là Dashboard Admin</div>} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="products" element={<AdminProductListPage />} />
             <Route path="add-product" element={<AddProductPage />} />
             <Route path="edit-product/:id" element={<EditProductPage />} />
@@ -139,6 +146,8 @@ function App() {
             <Route path="members" element={<MemberListPage />} />
             <Route path="members/add" element={<AddMemberPage />} />
             <Route path="members/edit/:id" element={<EditMemberPage />} />
+            <Route path="orders" element={<OrderListPage />} />
+            <Route path="orders/:id" element={<OrderDetailPage />} />
           </Route>
         </Route>
 
