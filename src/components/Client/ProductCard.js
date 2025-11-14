@@ -11,34 +11,23 @@ function normFileUrl(val) {
   if (!val) return "";
   let v = String(val).trim().replace(/\\/g, "/");
 
-  // 1) ĐÃ là full URL
   if (/^https?:\/\//i.test(v)) {
     try {
       const u = new URL(v);
-      // Nếu là http://host:port/files/... (THIẾU /api) -> thêm /api
       if (u.origin === ORIGIN && u.pathname.startsWith("/files/")) {
         return `${ORIGIN}/api${u.pathname}`;
       }
-      return v; // còn lại giữ nguyên
-    } catch {
-      // nếu parse URL lỗi, fallback xử lý như đường dẫn tương đối bên dưới
-    }
+      return v;
+    } catch {}
   }
 
-  // 2) Dạng đã đúng prefix /api/files/ -> ghép ORIGIN
   if (v.startsWith("/api/files/")) return `${ORIGIN}${v}`;
-
-  // 3) Dạng /files/... hoặc files/... -> ghép API_BASE (có /api sẵn)
   if (v.startsWith("/files/")) return `${API_BASE}${v}`;
   if (v.startsWith("files/"))  return `${API_BASE}/${v}`;
-
-  // 4) Chỉ là tên file -> ghép /api/files/<name>
   if (!v.includes("/")) return `${API_BASE}/files/${v}`;
 
-  // 5) Fallback: đường dẫn tương đối khác -> gắn vào API_BASE
   return `${API_BASE}/${v.replace(/^\/+/, "")}`;
 }
-
 
 const formatPrice = (price) =>
   (typeof price !== 'number' || isNaN(price)) ? ""
@@ -49,7 +38,6 @@ const ProductCard = (props) => {
 
   const { id, name, price, oldPrice, discount, img, imageUrl, categoryName, quantity } = props;
 
-  // chuẩn hoá ảnh (ưu tiên: imageUrl -> img)
   const src = normFileUrl(imageUrl || img);
   const safeSrc = src || `https://placehold.co/300x300/e0e7ff/1e3a8a?text=${encodeURIComponent(name || 'Product')}`;
 
@@ -95,11 +83,11 @@ const ProductCard = (props) => {
         />
       </div>
 
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="font-semibold text-lg mb-2 h-14 overflow-hidden text-gray-800 group-hover:text-blue-600">
+      <div className="p-4 flex flex-col flex-grow justify-between">
+        <h3 className="font-semibold text-lg mb-2 min-h-[48px] max-h-[48px] overflow-hidden text-gray-800 group-hover:text-blue-600">
           {name}
         </h3>
-        <div className="flex-grow"></div>
+
         <div className="flex flex-col items-start gap-1 mt-2">
           <span className="font-bold text-red-600 text-xl">{formatPrice(price)}</span>
           {oldPrice && <span className="text-gray-500 line-through text-sm">{formatPrice(oldPrice)}</span>}
@@ -117,7 +105,9 @@ const ProductCard = (props) => {
 
       {quantity === 0 && (
         <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 pointer-events-none">
-          <span className="font-semibold text-red-600 border border-red-600 px-3 py-1 rounded-full">Hết hàng</span>
+          <span className="font-semibold text-red-600 border border-red-600 px-3 py-1 rounded-full">
+            Hết hàng
+          </span>
         </div>
       )}
     </Link>

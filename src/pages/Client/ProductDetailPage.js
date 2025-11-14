@@ -12,37 +12,27 @@ function normFileUrl(val) {
   if (!val) return "";
   let v = String(val).trim().replace(/\\/g, "/");
 
-  // 1) ĐÃ là full URL
   if (/^https?:\/\//i.test(v)) {
     try {
       const u = new URL(v);
-      // Nếu là http://host:port/files/... (THIẾU /api) -> thêm /api
       if (u.origin === ORIGIN && u.pathname.startsWith("/files/")) {
         return `${ORIGIN}/api${u.pathname}`;
       }
-      return v; // còn lại giữ nguyên
-    } catch {
-      // nếu parse URL lỗi, fallback xử lý như đường dẫn tương đối bên dưới
-    }
+      return v;
+    } catch {}
   }
 
-  // 2) Dạng đã đúng prefix /api/files/ -> ghép ORIGIN
   if (v.startsWith("/api/files/")) return `${ORIGIN}${v}`;
-
-  // 3) Dạng /files/... hoặc files/... -> ghép API_BASE (có /api sẵn)
   if (v.startsWith("/files/")) return `${API_BASE}${v}`;
   if (v.startsWith("files/"))  return `${API_BASE}/${v}`;
-
-  // 4) Chỉ là tên file -> ghép /api/files/<name>
   if (!v.includes("/")) return `${API_BASE}/files/${v}`;
 
-  // 5) Fallback: đường dẫn tương đối khác -> gắn vào API_BASE
   return `${API_BASE}/${v.replace(/^\/+/, "")}`;
 }
 
-
 const formatPrice = (price) =>
-  typeof price !== 'number' ? 'N/A'
+  typeof price !== 'number'
+    ? 'N/A'
     : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 
 const ProductDetailPage = () => {
@@ -58,7 +48,7 @@ const ProductDetailPage = () => {
       try {
         const res = await productService.getProductById(id);
         const p = res.data;
-        p.imageUrl = normFileUrl(p.imageUrl); // chuẩn hoá
+        p.imageUrl = normFileUrl(p.imageUrl);
         setProduct(p);
       } catch (error) {
         console.error("Lỗi khi tải chi tiết sản phẩm:", error);
@@ -98,6 +88,8 @@ const ProductDetailPage = () => {
   return (
     <div className="bg-white py-12">
       <div className="container mx-auto px-6">
+        
+        {/* Breadcrumb */}
         <div className="flex items-center text-sm text-gray-500 mb-6">
           <Link to="/" className="hover:text-blue-600">Trang chủ</Link>
           <ChevronRight size={16} className="mx-1" />
@@ -106,7 +98,10 @@ const ProductDetailPage = () => {
           <span className="font-medium text-gray-700">{product.name}</span>
         </div>
 
+        {/* MAIN CONTENT */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          
+          {/* IMAGE */}
           <div>
             <img
               src={product.imageUrl || 'https://placehold.co/600x600/e2e8f0/94a3b8?text=No+Image'}
@@ -119,10 +114,14 @@ const ProductDetailPage = () => {
             />
           </div>
 
+          {/* INFO */}
           <div>
             <h1 className="text-4xl font-bold text-gray-800 mb-4">{product.name}</h1>
+
             <div className="mb-6">
-              <span className="text-4xl font-bold text-red-600">{formatPrice(product.price)}</span>
+              <span className="text-4xl font-bold text-red-600">
+                {formatPrice(product.price)}
+              </span>
             </div>
 
             <p className="text-gray-600 mb-6 leading-relaxed">
@@ -130,6 +129,8 @@ const ProductDetailPage = () => {
             </p>
 
             <div className="border-t border-b py-6 mb-6 space-y-4">
+
+              {/* SỐ LƯỢNG */}
               <div className="flex items-center">
                 <span className="font-semibold text-gray-700 w-28">Số lượng:</span>
                 <div className="flex items-center border rounded-md">
@@ -140,6 +141,7 @@ const ProductDetailPage = () => {
                 <span className="text-gray-500 text-sm ml-4">({product.quantity} sản phẩm có sẵn)</span>
               </div>
 
+              {/* DANH MỤC */}
               <div className="flex items-center">
                 <span className="font-semibold text-gray-700 w-28">Danh mục:</span>
                 <Link to={`/products?category=${product.categoryId}`} className="text-blue-600 hover:underline">
@@ -147,6 +149,18 @@ const ProductDetailPage = () => {
                 </Link>
               </div>
 
+              {/* ⭐ THƯƠNG HIỆU (PHẦN MỚI THÊM) */}
+              <div className="flex items-center">
+                <span className="font-semibold text-gray-700 w-28">Thương hiệu:</span>
+                <Link
+                  to={`/products?brand=${product.brandId}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {product.brandName || "Không rõ"}
+                </Link>
+              </div>
+
+              {/* TÌNH TRẠNG */}
               <div className="flex items-center">
                 <span className="font-semibold text-gray-700 w-28">Tình trạng:</span>
                 {product.quantity > 0 ? (
@@ -155,8 +169,10 @@ const ProductDetailPage = () => {
                   <span className="text-red-600 font-semibold">Hết hàng</span>
                 )}
               </div>
+
             </div>
 
+            {/* ADD TO CART */}
             <button
               onClick={handleAddToCart}
               disabled={product.quantity === 0}
@@ -165,17 +181,21 @@ const ProductDetailPage = () => {
               <ShoppingCart size={22} /> Thêm vào giỏ hàng
             </button>
 
+            {/* CAM KẾT */}
             <div className="mt-8 space-y-3 text-gray-600">
               <div className="flex items-center gap-3"><Shield size={20} className="text-blue-500" /><span>Bảo hành chính hãng 12 tháng.</span></div>
               <div className="flex items-center gap-3"><CheckCircle size={20} className="text-green-500" /><span>Cam kết hàng mới 100% (Fullbox).</span></div>
             </div>
+
           </div>
         </div>
 
+        {/* SẢN PHẨM LIÊN QUAN */}
         <div className="mt-20 border-t pt-12">
           <h2 className="text-3xl font-bold text-center mb-10">Sản phẩm liên quan</h2>
           <div className="text-center text-gray-500">(Chức năng đang được phát triển)</div>
         </div>
+
       </div>
     </div>
   );
