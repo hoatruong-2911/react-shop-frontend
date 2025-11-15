@@ -79,10 +79,13 @@ function AdminLayout() {
             <li className="p-4 hover:bg-gray-700">
 
               <Link to="/admin/orders">Đơn hàng</Link>
-
+           </li>
+           <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/brands">Thương hiệu</Link>
-
-            </li>
+           </li>
+           <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/reviews">Đánh giá</Link>
+           </li>
             <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/members">Người dùng</Link>
             </li>

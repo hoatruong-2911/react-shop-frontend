@@ -42,6 +42,15 @@ const ProductDetailPage = () => {
   const [loading, setLoading]   = useState(true);
   const { addToCart } = useCart();
 
+  // ====== STATE CHO ĐÁNH GIÁ ======
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  // ====== LOAD PRODUCT ======
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
@@ -60,6 +69,26 @@ const ProductDetailPage = () => {
     if (id) fetchProduct();
   }, [id]);
 
+  // ====== LOAD REVIEWS ======
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchReviews = async () => {
+      setReviewsLoading(true);
+      try {
+        // hàm này bạn đã thêm trong Client/productService.js
+        const res = await productService.getProductReviews(id);
+        setReviews(res.data || []);
+      } catch (err) {
+        console.error("Lỗi khi tải đánh giá:", err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, [id]);
+
   const handleQuantityChange = (amount) => {
     setQuantity(prev => {
       const newQuantity = prev + amount;
@@ -76,6 +105,48 @@ const ProductDetailPage = () => {
     if (!product) return;
     addToCart(product, quantity);
     toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`);
+  };
+
+  // ====== GỬI ĐÁNH GIÁ ======
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      toast.warn("Vui lòng đăng nhập để đánh giá sản phẩm");
+      return;
+    }
+    if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
+      toast.warn("Vui lòng chọn số sao từ 1 đến 5");
+      return;
+    }
+    if (!reviewComment.trim()) {
+      toast.warn("Vui lòng nhập nội dung đánh giá");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      const payload = {
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      };
+      await productService.createProductReview(id, payload);
+      toast.success("Cảm ơn bạn đã đánh giá!");
+
+      setReviewComment("");
+      setReviewRating(5);
+
+      const res = await productService.getProductReviews(id);
+      setReviews(res.data || []);
+    } catch (err) {
+      console.error("Lỗi khi gửi đánh giá:", err);
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Không thể gửi đánh giá. Có thể bạn chưa mua sản phẩm này.";
+      toast.error(msg);
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   if (loading) return (
@@ -149,7 +220,7 @@ const ProductDetailPage = () => {
                 </Link>
               </div>
 
-              {/* ⭐ THƯƠNG HIỆU (PHẦN MỚI THÊM) */}
+              {/* THƯƠNG HIỆU */}
               <div className="flex items-center">
                 <span className="font-semibold text-gray-700 w-28">Thương hiệu:</span>
                 <Link
@@ -188,6 +259,102 @@ const ProductDetailPage = () => {
             </div>
 
           </div>
+        </div>
+
+        {/* ĐÁNH GIÁ SẢN PHẨM */}
+        <div className="mt-16 border-t pt-10">
+          <h2 className="text-2xl font-bold mb-6">Đánh giá sản phẩm</h2>
+
+          {/* FORM ĐÁNH GIÁ */}
+          <div className="bg-gray-50 border rounded-lg p-5 mb-8">
+            {isLoggedIn ? (
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block font-semibold mb-1">Số sao</label>
+                  <select
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value))}
+                    className="border rounded px-3 py-2"
+                  >
+                    {[5, 4, 3, 2, 1].map((star) => (
+                      <option key={star} value={star}>
+                        {star} sao
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1">Nhận xét</label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={3}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+                </button>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  * Hệ thống chỉ chấp nhận đánh giá từ khách đã mua sản phẩm này.
+                </p>
+              </form>
+            ) : (
+              <p className="text-gray-700">
+                Vui lòng{" "}
+                <Link to="/login" className="text-blue-600 underline">
+                  đăng nhập
+                </Link>{" "}
+                để đánh giá sản phẩm.
+              </p>
+            )}
+          </div>
+
+          {/* DANH SÁCH ĐÁNH GIÁ */}
+          {reviewsLoading ? (
+            <div className="text-gray-500">Đang tải đánh giá...</div>
+          ) : reviews.length === 0 ? (
+            <div className="text-gray-500">
+              Chưa có đánh giá nào cho sản phẩm này.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((r) => (
+                <div
+                  key={r.id}
+                  className="border rounded-lg p-4 bg-white shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-semibold">
+                      {r.userName || "Người dùng"}
+                    </div>
+                    <div className="text-yellow-500 text-sm">
+                      {"★".repeat(r.rating)}{" "}
+                      <span className="text-gray-500">
+                        ({r.rating}/5)
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {r.comment}
+                  </p>
+                  {r.createdAt && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      {new Date(r.createdAt).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* SẢN PHẨM LIÊN QUAN */}

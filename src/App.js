@@ -20,11 +20,12 @@ import EditMemberPage from "./pages/Admin/users/EditMemberPage";
 import OrderListPage from "./pages/Admin/orders/OrderListPage";
 import OrderDetailPage from "./pages/Admin/orders/OrderDetailPage";
 import DashboardPage from "./pages/Admin/dashboard/DashboardPage";
-
+import ReviewListPage from "./pages/Admin/reviews/ReviewListPage";
 // brand
 import BrandListPage from "./pages/Admin/brands/BrandListPage";
 import AddBrandPage from "./pages/Admin/brands/AddBrandPage";
 import EditBrandPage from "./pages/Admin/brands/EditBrandPage";
+
 
 // Client pages
 import HomePage from "./pages/Client/HomePage";
@@ -149,6 +150,7 @@ function App() {
             <Route path="categories" element={<CategoryListPage />} />
             <Route path="add-category" element={<AddCategoryPage />} />
             <Route path="edit-category/:id" element={<EditCategoryPage />} />
+            <Route path="reviews" element={<ReviewListPage />} />
             {/* brand */}
             <Route path="brands" element={<BrandListPage />} />
             <Route path="add-brand" element={<AddBrandPage />} />
