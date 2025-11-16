@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import productService from '../../services/Client/productService';
-import { toast } from 'react-toastify';
-import { ChevronRight, ShoppingCart, Minus, Plus, CheckCircle, Shield } from 'lucide-react';
-import { useCart } from '../../contexts/CartContext';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import productService from "../../services/Client/productService";
+import { toast } from "react-toastify";
+import {
+  ChevronRight,
+  ShoppingCart,
+  Minus,
+  Plus,
+  CheckCircle,
+  Shield,
+} from "lucide-react";
+import { useCart } from "../../contexts/CartContext";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
-const ORIGIN   = API_BASE.replace(/\/api\/?$/, "");
+const ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
 function normFileUrl(val) {
   if (!val) return "";
@@ -24,22 +31,25 @@ function normFileUrl(val) {
 
   if (v.startsWith("/api/files/")) return `${ORIGIN}${v}`;
   if (v.startsWith("/files/")) return `${API_BASE}${v}`;
-  if (v.startsWith("files/"))  return `${API_BASE}/${v}`;
+  if (v.startsWith("files/")) return `${API_BASE}/${v}`;
   if (!v.includes("/")) return `${API_BASE}/files/${v}`;
 
   return `${API_BASE}/${v.replace(/^\/+/, "")}`;
 }
 
 const formatPrice = (price) =>
-  typeof price !== 'number'
-    ? 'N/A'
-    : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  typeof price !== "number"
+    ? "N/A"
+    : new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(price);
 
 const ProductDetailPage = () => {
   const { id } = useParams();
-  const [product, setProduct]   = useState(null);
+  const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
   // ====== STATE CHO ĐÁNH GIÁ ======
@@ -69,6 +79,7 @@ const ProductDetailPage = () => {
     if (id) fetchProduct();
   }, [id]);
 
+
   // ====== LOAD REVIEWS ======
   useEffect(() => {
     if (!id) return;
@@ -89,8 +100,37 @@ const ProductDetailPage = () => {
     fetchReviews();
   }, [id]);
 
+  const [relatedProducts, setRelatedProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      if (!product) return;
+
+      try {
+        const res = await productService.getAllProducts();
+
+        // Lọc sản phẩm liên quan theo CATEGORY + khác ID hiện tại
+        const filtered = (res.data || [])
+          .filter(
+            (p) => p.id !== product.id && p.categoryId === product.categoryId
+          )
+          .slice(0, 4) // chỉ lấy 4 cái
+          .map((p) => ({
+            ...p,
+            imageUrl: normFileUrl(p.imageUrl),
+          }));
+
+        setRelatedProducts(filtered);
+      } catch (err) {
+        console.error("Lỗi tải sản phẩm liên quan:", err);
+      }
+    };
+
+    fetchRelated();
+  }, [product]);
+
   const handleQuantityChange = (amount) => {
-    setQuantity(prev => {
+    setQuantity((prev) => {
       const newQuantity = prev + amount;
       if (newQuantity < 1) return 1;
       if (product && newQuantity > product.quantity) {
@@ -106,6 +146,7 @@ const ProductDetailPage = () => {
     addToCart(product, quantity);
     toast.success(`Đã thêm ${quantity} "${product.name}" vào giỏ hàng!`);
   };
+
 
   // ====== GỬI ĐÁNH GIÁ ======
   const handleSubmitReview = async (e) => {
@@ -156,38 +197,60 @@ const ProductDetailPage = () => {
     <div className="container mx-auto px-6 py-12 text-center">Không tìm thấy sản phẩm.</div>
   );
 
+  if (loading)
+    return (
+      <div className="container mx-auto px-6 py-12 text-center">
+        Đang tải chi tiết sản phẩm...
+      </div>
+    );
+  if (!product)
+    return (
+      <div className="container mx-auto px-6 py-12 text-center">
+        Không tìm thấy sản phẩm.
+      </div>
+    );
+
+
   return (
     <div className="bg-white py-12">
       <div className="container mx-auto px-6">
-        
         {/* Breadcrumb */}
         <div className="flex items-center text-sm text-gray-500 mb-6">
-          <Link to="/" className="hover:text-blue-600">Trang chủ</Link>
+          <Link to="/" className="hover:text-blue-600">
+            Trang chủ
+          </Link>
           <ChevronRight size={16} className="mx-1" />
-          <Link to="/products" className="hover:text-blue-600">Sản phẩm</Link>
+          <Link to="/products" className="hover:text-blue-600">
+            Sản phẩm
+          </Link>
           <ChevronRight size={16} className="mx-1" />
           <span className="font-medium text-gray-700">{product.name}</span>
         </div>
 
         {/* MAIN CONTENT */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          
           {/* IMAGE */}
           <div>
             <img
-              src={product.imageUrl || 'https://placehold.co/600x600/e2e8f0/94a3b8?text=No+Image'}
+              src={
+                product.imageUrl ||
+                "https://placehold.co/600x600/e2e8f0/94a3b8?text=No+Image"
+              }
               alt={product.name}
               className="w-full h-auto object-cover rounded-lg shadow-md border"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = 'https://placehold.co/600x600/e2e8f0/94a3b8?text=No+Image';
+                e.currentTarget.src =
+                  "https://placehold.co/600x600/e2e8f0/94a3b8?text=No+Image";
               }}
             />
           </div>
 
           {/* INFO */}
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">{product.name}</h1>
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+              {product.name}
+            </h1>
 
             <div className="mb-6">
               <span className="text-4xl font-bold text-red-600">
@@ -200,29 +263,58 @@ const ProductDetailPage = () => {
             </p>
 
             <div className="border-t border-b py-6 mb-6 space-y-4">
-
               {/* SỐ LƯỢNG */}
               <div className="flex items-center">
-                <span className="font-semibold text-gray-700 w-28">Số lượng:</span>
+                <span className="font-semibold text-gray-700 w-28">
+                  Số lượng:
+                </span>
                 <div className="flex items-center border rounded-md">
-                  <button onClick={() => handleQuantityChange(-1)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-l-md" disabled={quantity <= 1}><Minus size={16} /></button>
-                  <input type="text" value={quantity} readOnly className="w-16 text-center border-l border-r py-2" />
-                  <button onClick={() => handleQuantityChange(1)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-r-md" disabled={product.quantity === 0 || quantity >= product.quantity}><Plus size={16} /></button>
+                  <button
+                    onClick={() => handleQuantityChange(-1)}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-l-md"
+                    disabled={quantity <= 1}
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <input
+                    type="text"
+                    value={quantity}
+                    readOnly
+                    className="w-16 text-center border-l border-r py-2"
+                  />
+                  <button
+                    onClick={() => handleQuantityChange(1)}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-r-md"
+                    disabled={
+                      product.quantity === 0 || quantity >= product.quantity
+                    }
+                  >
+                    <Plus size={16} />
+                  </button>
                 </div>
-                <span className="text-gray-500 text-sm ml-4">({product.quantity} sản phẩm có sẵn)</span>
+                <span className="text-gray-500 text-sm ml-4">
+                  ({product.quantity} sản phẩm có sẵn)
+                </span>
               </div>
 
               {/* DANH MỤC */}
               <div className="flex items-center">
-                <span className="font-semibold text-gray-700 w-28">Danh mục:</span>
-                <Link to={`/products?category=${product.categoryId}`} className="text-blue-600 hover:underline">
-                  {product.categoryName || 'Chưa phân loại'}
+                <span className="font-semibold text-gray-700 w-28">
+                  Danh mục:
+                </span>
+                <Link
+                  to={`/products?category=${product.categoryId}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {product.categoryName || "Chưa phân loại"}
                 </Link>
               </div>
 
               {/* THƯƠNG HIỆU */}
               <div className="flex items-center">
-                <span className="font-semibold text-gray-700 w-28">Thương hiệu:</span>
+                <span className="font-semibold text-gray-700 w-28">
+                  Thương hiệu:
+                </span>
                 <Link
                   to={`/products?brand=${product.brandId}`}
                   className="text-blue-600 hover:underline"
@@ -233,14 +325,15 @@ const ProductDetailPage = () => {
 
               {/* TÌNH TRẠNG */}
               <div className="flex items-center">
-                <span className="font-semibold text-gray-700 w-28">Tình trạng:</span>
+                <span className="font-semibold text-gray-700 w-28">
+                  Tình trạng:
+                </span>
                 {product.quantity > 0 ? (
                   <span className="text-green-600 font-semibold">Còn hàng</span>
                 ) : (
                   <span className="text-red-600 font-semibold">Hết hàng</span>
                 )}
               </div>
-
             </div>
 
             {/* ADD TO CART */}
@@ -254,10 +347,15 @@ const ProductDetailPage = () => {
 
             {/* CAM KẾT */}
             <div className="mt-8 space-y-3 text-gray-600">
-              <div className="flex items-center gap-3"><Shield size={20} className="text-blue-500" /><span>Bảo hành chính hãng 12 tháng.</span></div>
-              <div className="flex items-center gap-3"><CheckCircle size={20} className="text-green-500" /><span>Cam kết hàng mới 100% (Fullbox).</span></div>
+              <div className="flex items-center gap-3">
+                <Shield size={20} className="text-blue-500" />
+                <span>Bảo hành chính hãng 12 tháng.</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle size={20} className="text-green-500" />
+                <span>Cam kết hàng mới 100% (Fullbox).</span>
+              </div>
             </div>
-
           </div>
         </div>
 
@@ -358,11 +456,42 @@ const ProductDetailPage = () => {
         </div>
 
         {/* SẢN PHẨM LIÊN QUAN */}
+        {/* SẢN PHẨM LIÊN QUAN */}
         <div className="mt-20 border-t pt-12">
-          <h2 className="text-3xl font-bold text-center mb-10">Sản phẩm liên quan</h2>
-          <div className="text-center text-gray-500">(Chức năng đang được phát triển)</div>
-        </div>
+          <h2 className="text-3xl font-bold text-center mb-10">
+            Sản phẩm liên quan
+          </h2>
 
+          {relatedProducts.length === 0 ? (
+            <div className="text-center text-gray-500">
+              Không có sản phẩm liên quan.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {relatedProducts.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/product/${item.id}`}
+                  className="bg-white rounded-xl shadow hover:shadow-xl transition block overflow-hidden"
+                >
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-full h-56 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-800 mb-2 truncate">
+                      {item.name}
+                    </h3>
+                    <p className="text-red-600 font-bold">
+                      {formatPrice(item.price)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

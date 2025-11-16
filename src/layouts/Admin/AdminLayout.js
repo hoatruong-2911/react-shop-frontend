@@ -71,6 +71,9 @@ function AdminLayout() {
               <Link to="/admin/dashboard">Dashboard</Link>
             </li>
             <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/banners">Banner</Link>
+            </li>
+            <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/products">Sản phẩm</Link>
             </li>
             <li className="p-4 hover:bg-gray-700">
@@ -86,6 +89,19 @@ function AdminLayout() {
            <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/reviews">Đánh giá</Link>
            </li>
+           <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/brands">Thương hiệu</Link>
+            </li>
+            <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/topics">Chủ đề</Link>
+            </li>
+            <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/posts">bài viết</Link>
+            </li>
+            <li className="p-4 hover:bg-gray-700">
+              <Link to="/admin/orders">Đơn hàng</Link>
+            </li>
+            
             <li className="p-4 hover:bg-gray-700">
               <Link to="/admin/members">Người dùng</Link>
             </li>

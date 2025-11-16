@@ -7,7 +7,7 @@ import { CartProvider } from "./contexts/CartContext";
 import AdminLayout from "./layouts/Admin/AdminLayout";
 import ClientLayout from "./layouts/Client/ClientLayout";
 
-// Admin pages
+//--------------------- Admin pages
 import { default as AdminProductListPage } from "./pages/Admin/products/ProductListPage";
 import AddProductPage from "./pages/Admin/products/AddProductPage";
 import EditProductPage from "./pages/Admin/products/EditProductPage";
@@ -28,6 +28,24 @@ import EditBrandPage from "./pages/Admin/brands/EditBrandPage";
 
 
 // Client pages
+
+// banners
+import BannerListPage from "./pages/Admin/banners/BannerListPage";
+import AddBannerPage from "./pages/Admin/banners/AddBannerPage";
+import EditBannerPage from "./pages/Admin/banners/EditBannerPage";
+
+// topic
+import TopicListPage from "./pages/Admin/topics/TopicListPage";
+import AddTopicPage from "./pages/Admin/topics/AddTopicPage";
+import EditTopicPage from "./pages/Admin/topics/EditTopicPage";
+
+// post
+import PostListPage from "./pages/Admin/posts/PostListPage";
+import AddPostPage from "./pages/Admin/posts/AddPostPage";
+import EditPostPage from "./pages/Admin/posts/EditPostPage";
+
+// -------------------Client pages
+
 import HomePage from "./pages/Client/HomePage";
 import ProductListPage from "./pages/Client/ProductListPage";
 import ProductDetailPage from "./pages/Client/ProductDetailPage";
@@ -35,6 +53,7 @@ import CartPage from "./pages/Client/CartPage";
 import ProfilePage from "./pages/Client/ProfilePage";
 import CheckoutPage from "./pages/Client/CheckoutPage";
 import MyOrdersPage from "./pages/Client/MyOrdersPage";
+import AboutPage from "./pages/Client/AboutPage";
 // Auth
 import LoginPage from "./pages/Auth/LoginPage";
 import authService from "./services/authService";
@@ -43,6 +62,11 @@ import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage";
 // Toast
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// post
+// Client posts
+import PostPage from "./pages/Client/PostPage";
+import PostDetailPage from "./pages/Client/PostDetailPage";
 
 /* =========================
    GUARDS
@@ -61,16 +85,24 @@ function RedirectIfAuthed() {
     const raw = localStorage.getItem("auth_user");
     if (!raw) {
       mounted && setState({ loading: false, role: null });
-      return () => { mounted = false; };
+      return () => {
+        mounted = false;
+      };
     }
 
     // Nếu có auth_user thì xác nhận lại với server
     authService
       .me()
-      .then((u) => mounted && setState({ loading: false, role: (u?.role || "").toUpperCase() }))
+      .then(
+        (u) =>
+          mounted &&
+          setState({ loading: false, role: (u?.role || "").toUpperCase() })
+      )
       .catch(() => mounted && setState({ loading: false, role: null }));
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (state.loading) return null; // hoặc spinner
@@ -83,7 +115,6 @@ function RedirectIfAuthed() {
   }
   return <Outlet />;
 }
-
 
 /** Yêu cầu đăng nhập + đúng role (ví dụ ADMIN/STAFF) */
 function RequireRole({ allow = [] }) {
@@ -137,6 +168,11 @@ function App() {
           <Route path="/user/profile" element={<ProfilePage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="my-orders" element={<MyOrdersPage />} />
+          <Route path="about" element={<AboutPage />} />
+
+          {/* post */}
+          <Route path="post" element={<PostPage />} />
+          <Route path="post/:slug" element={<PostDetailPage />} />
         </Route>
 
         {/* ======= Admin area (ADMIN & STAFF) ======= */}
@@ -154,8 +190,22 @@ function App() {
             {/* brand */}
             <Route path="brands" element={<BrandListPage />} />
             <Route path="add-brand" element={<AddBrandPage />} />
-            <Route path="edit-brand/:id" element={<EditBrandPage />} /> 
+            <Route path="edit-brand/:id" element={<EditBrandPage />} />
 
+            {/* banners */}
+            <Route path="banners" element={<BannerListPage />} />
+            <Route path="add-banner" element={<AddBannerPage />} />
+            <Route path="edit-banner/:id" element={<EditBannerPage />} />
+
+            {/*  TOPICS  */}
+            <Route path="topics" element={<TopicListPage />} />
+            <Route path="topics/add" element={<AddTopicPage />} />
+            <Route path="topics/edit/:id" element={<EditTopicPage />} />
+
+            {/* post */}
+            <Route path="posts" element={<PostListPage />} />
+            <Route path="posts/add" element={<AddPostPage />} />
+            <Route path="posts/edit/:id" element={<EditPostPage />} />
 
             <Route path="members" element={<MemberListPage />} />
             <Route path="members/add" element={<AddMemberPage />} />

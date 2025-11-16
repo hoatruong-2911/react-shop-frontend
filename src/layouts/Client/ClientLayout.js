@@ -142,7 +142,6 @@ const ClientHeader = () => {
                     </button>
                   </div>
                 )}
-
               </div>
             )}
           </div>
@@ -198,11 +197,8 @@ const ClientHeader = () => {
           <Link to="/about" className="hover:text-blue-600">
             Giới thiệu
           </Link>
-          <Link to="/news" className="hover:text-blue-600">
+          <Link to="/post" className="hover:text-blue-600">
             Tin tức công nghệ
-          </Link>
-          <Link to="/contact" className="hover:text-blue-600">
-            Liên hệ
           </Link>
         </nav>
       </div>
@@ -211,11 +207,114 @@ const ClientHeader = () => {
 };
 
 const ClientFooter = () => (
-  <footer className="bg-gray-900 text-gray-400">
-    {/* tuỳ bạn giữ footer cũ */}
-    <div className="border-t border-gray-800">
-      <div className="container mx-auto px-6 py-6 text-center text-sm">
-        © 2025 TECH-SHOP. All rights reserved.
+  <footer className="bg-gray-900 text-gray-300 mt-16">
+    <div className="container mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-12">
+      {/* Cột 1: Logo + mô tả */}
+      <div>
+        <h3 className="text-xl font-bold text-white mb-4">TECH-SHOP</h3>
+        <p className="text-gray-400 leading-relaxed">
+          Cửa hàng công nghệ uy tín – chuyên cung cấp laptop, PC, gaming gear,
+          điện thoại và phụ kiện chính hãng.
+        </p>
+        <div className="mt-4 space-y-2 text-gray-400">
+          <p>📍 Văn Lâm 3, Phước Nam, Thuận Nam, Ninh Thuận</p>
+          <p>📞 Hotline: 1900.4444</p>
+          <p>✉️ Email: support@techshop.vn</p>
+        </div>
+      </div>
+
+      {/* Cột 2: Sản phẩm */}
+      <div>
+        <h4 className="text-lg font-semibold text-white mb-4">Sản phẩm</h4>
+        <ul className="space-y-3 text-gray-400">
+          <li>
+            <Link className="hover:text-white" to="/products?category=laptop">
+              Laptop
+            </Link>
+          </li>
+          <li>
+            <Link className="hover:text-white" to="/products?category=pc">
+              PC - Máy tính bàn
+            </Link>
+          </li>
+          <li>
+            <Link className="hover:text-white" to="/products?category=gaming">
+              Gaming Gear
+            </Link>
+          </li>
+          <li>
+            <Link className="hover:text-white" to="/products?category=phone">
+              Điện thoại
+            </Link>
+          </li>
+        </ul>
+      </div>
+
+      {/* Cột 3: Hỗ trợ */}
+      <div>
+        <h4 className="text-lg font-semibold text-white mb-4">Hỗ trợ</h4>
+        <ul className="space-y-3 text-gray-400">
+          <li>
+            <Link className="hover:text-white" to="/contact">
+              Liên hệ
+            </Link>
+          </li>
+          <li>
+            <Link className="hover:text-white" to="/about">
+              Giới thiệu
+            </Link>
+          </li>
+          <li>
+            <Link className="hover:text-white" to="/policy/shipping">
+              Chính sách vận chuyển
+            </Link>
+          </li>
+          <li>
+            <Link className="hover:text-white" to="/policy/warranty">
+              Chính sách bảo hành
+            </Link>
+          </li>
+        </ul>
+      </div>
+
+      {/* Cột 4: Newsletter + Social */}
+      <div>
+        <h4 className="text-lg font-semibold text-white mb-4">
+          Kết nối với chúng tôi
+        </h4>
+
+        <div className="flex gap-4 text-2xl mb-6">
+          <a href="#" className="hover:text-white">
+            🌐
+          </a>
+          <a href="#" className="hover:text-white">
+            👍
+          </a>
+          <a href="#" className="hover:text-white">
+            📸
+          </a>
+          <a href="#" className="hover:text-white">
+            ▶️
+          </a>
+        </div>
+
+        <p className="text-gray-400 mb-3">Nhận thông báo khuyến mãi:</p>
+        <div className="flex">
+          <input
+            type="email"
+            placeholder="Nhập email..."
+            className="flex-1 px-3 py-2 bg-gray-800 text-gray-300 rounded-l-md focus:outline-none"
+          />
+          <button className="bg-blue-600 px-4 py-2 rounded-r-md text-white hover:bg-blue-700">
+            Gửi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="border-t border-gray-700 mt-8">
+      <div className="container mx-auto px-6 py-6 text-center text-sm text-gray-500">
+        © 2025 TECH-SHOP - All rights reserved.
       </div>
     </div>
   </footer>

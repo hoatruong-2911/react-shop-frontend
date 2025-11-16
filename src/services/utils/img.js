@@ -1,10 +1,12 @@
 // src/services/utils/img.js
 // Chuẩn hoá mọi kiểu giá trị ảnh (full URL, /files/..., chỉ filename, v.v.)
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
-const ORIGIN   = API_BASE.replace(/\/api\/?$/, "");
-export const PLACEHOLDER_IMG = "https://placehold.co/64x64/e2e8f0/94a3b8?text=No+Image";
+const ORIGIN = API_BASE.replace(/\/api\/?$/, "");
+export const PLACEHOLDER_IMG =
+  "https://placehold.co/64x64/e2e8f0/94a3b8?text=No+Image";
 
 export function toImageSrc(objOrUrl) {
+  console.log("🔍 toImageSrc input:", objOrUrl);
   // Cho phép truyền cả object (product/category) hoặc chuỗi URL
   if (!objOrUrl) return "";
 
@@ -12,6 +14,7 @@ export function toImageSrc(objOrUrl) {
   if (typeof objOrUrl === "object") {
     val = objOrUrl.imageUrl || objOrUrl.image_url || objOrUrl.image || "";
   }
+  console.log("🔍 Sau chọn field:", val);
   if (!val) return "";
 
   let v = String(val).trim().replace(/\\/g, "/");
@@ -24,6 +27,7 @@ export function toImageSrc(objOrUrl) {
       if (u.origin === ORIGIN && u.pathname.startsWith("/files/")) {
         return `${ORIGIN}/api${u.pathname}`;
       }
+      console.log("👉 Full URL:", v);
       return v;
     } catch {
       // rơi xuống các nhánh dưới
@@ -32,8 +36,20 @@ export function toImageSrc(objOrUrl) {
 
   // 2) Đường dẫn tương đối
   if (v.startsWith("/api/files/")) return `${ORIGIN}${v}`;
-  if (v.startsWith("/files/"))     return `${API_BASE}${v}`;
-  if (v.startsWith("files/"))      return `${API_BASE}/${v}`;
+  // if (v.startsWith("/api/files/")) {
+  //   const full = `${ORIGIN}${v}`;
+  //   console.log("🔥 GHÉP URL /api/files →", full);
+  //   return full;
+  // }
+
+  if (v.startsWith("/files/")) return `${API_BASE}${v}`;
+//   if (v.startsWith("/files/")) {
+//   const full = `${API_BASE}${v}`;
+//   console.log("🔥 GHÉP URL /files →", full);
+//   return full;
+// }
+
+  if (v.startsWith("files/")) return `${API_BASE}/${v}`;
 
   // 3) Chỉ là filename
   if (!v.includes("/")) return `${API_BASE}/files/${v}`;
